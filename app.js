@@ -281,12 +281,12 @@ function render() {
       </div>
       <div class="order__attrs">
         <div class="attr">
-          <span class="attr__label">Size</span>
-          <span class="attr__dots">${dotsHtml(o.size)}</span>
-        </div>
-        <div class="attr">
           <span class="attr__label">Strength</span>
           <span class="attr__dots">${dotsHtml(o.strength)}</span>
+        </div>
+        <div class="attr">
+          <span class="attr__label">Size</span>
+          <span class="attr__dots">${dotsHtml(o.size)}</span>
         </div>
       </div>
       <div class="order__foot">
