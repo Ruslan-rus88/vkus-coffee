@@ -2,16 +2,28 @@
 
 const MENU = [
   { id: "capuchino", name: "Capuchino", price: 10, emoji: "☕" },
-  { id: "coffee",    name: "Coffee",    price: 20, emoji: "🫖" },
-  { id: "hotwater",  name: "Hot Water", price: 2,  emoji: "💧" },
+  { id: "coffee", name: "Coffee", price: 20, emoji: "🫖" },
+  { id: "hotwater", name: "Hot Water", price: 2, emoji: "💧" },
   { id: "flatwhite", name: "Flat White", price: 15, emoji: "🥛" },
-  { id: "espresso",  name: "Espresso",  price: 100, emoji: "⚡" },
-  { id: "surprise",  name: "Surprise!", price: null, emoji: "🎁", surprise: true },
+  { id: "espresso", name: "Espresso", price: 100, emoji: "⚡" },
+  {
+    id: "surprise",
+    name: "Surprise!",
+    price: null,
+    emoji: "🎁",
+    surprise: true,
+  },
 ];
 
 const CLIENTS = [
-  "Papa", "Mama", "Dudi", "Manya",
-  "Dada Suja", "Karim Arabic", "Shaalan Arabic", "Daniil",
+  "Ruslan",
+  "Katrine",
+  "Dudi Turki",
+  "Manya Anna",
+  "Raman",
+  "Karim",
+  "Shaalan",
+  "Daniil",
 ];
 
 const DOT_LABELS = ["Small", "Medium", "Large"];
@@ -38,14 +50,24 @@ function save() {
   localStorage.setItem(STORE_KEY, JSON.stringify(orders));
 }
 function initials(name) {
-  return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 function timeLabel(ts) {
   const d = new Date(ts);
-  return d.toLocaleString([], { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" });
+  return d.toLocaleString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "short",
+  });
 }
 
 /* Resolve a drink (handles surprise) */
@@ -54,7 +76,11 @@ function resolveDrink(menuId, surpriseId) {
   if (!item) return null;
   if (item.surprise) {
     const pick = MENU.find((m) => m.id === surpriseId) || MENU[0];
-    return { name: `Surprise: ${pick.name}`, price: pick.price ?? 0, emoji: "🎁" };
+    return {
+      name: `Surprise: ${pick.name}`,
+      price: pick.price ?? 0,
+      emoji: "🎁",
+    };
   }
   return { name: item.name, price: item.price, emoji: item.emoji };
 }
@@ -84,7 +110,9 @@ function buildMenu() {
       <span class="menu-item__price">${price}</span>`;
     btn.addEventListener("click", () => {
       draft.menuId = item.id;
-      $$("#menu .menu-item").forEach((b) => b.classList.toggle("is-active", b === btn));
+      $$("#menu .menu-item").forEach((b) =>
+        b.classList.toggle("is-active", b === btn),
+      );
       updateSummary();
     });
     wrap.appendChild(btn);
@@ -103,7 +131,9 @@ function buildDots(containerId, labels, key) {
                      <span class="dot-opt__label">${labels[i - 1]}</span>`;
     opt.addEventListener("click", () => {
       draft[key] = i;
-      $$("#" + containerId + " .dot-opt").forEach((o) => o.classList.toggle("is-active", o === opt));
+      $$("#" + containerId + " .dot-opt").forEach((o) =>
+        o.classList.toggle("is-active", o === opt),
+      );
       updateSummary();
     });
     wrap.appendChild(opt);
@@ -119,7 +149,9 @@ function buildClients() {
     btn.innerHTML = `<span class="client__av">${initials(name)}</span>${name}`;
     btn.addEventListener("click", () => {
       draft.client = name;
-      $$("#clients .client").forEach((b) => b.classList.toggle("is-active", b === btn));
+      $$("#clients .client").forEach((b) =>
+        b.classList.toggle("is-active", b === btn),
+      );
       updateSummary();
     });
     wrap.appendChild(btn);
@@ -183,8 +215,12 @@ function resetDraft() {
   draft.client = null;
   $$("#menu .menu-item").forEach((b) => b.classList.remove("is-active"));
   $$("#clients .client").forEach((b) => b.classList.remove("is-active"));
-  $$("#size .dot-opt").forEach((o) => o.classList.toggle("is-active", o.dataset.level === "2"));
-  $$("#strength .dot-opt").forEach((o) => o.classList.toggle("is-active", o.dataset.level === "2"));
+  $$("#size .dot-opt").forEach((o) =>
+    o.classList.toggle("is-active", o.dataset.level === "2"),
+  );
+  $$("#strength .dot-opt").forEach((o) =>
+    o.classList.toggle("is-active", o.dataset.level === "2"),
+  );
   updateSummary();
 }
 
@@ -205,8 +241,10 @@ function deleteOrder(id) {
 
 /* ---------- Render active orders ---------- */
 function dotsHtml(level) {
-  return Array.from({ length: 3 }, (_, i) =>
-    `<i class="${i < level ? "on" : ""}"></i>`).join("");
+  return Array.from(
+    { length: 3 },
+    (_, i) => `<i class="${i < level ? "on" : ""}"></i>`,
+  ).join("");
 }
 
 function render() {
@@ -222,8 +260,9 @@ function render() {
     card.className = "order";
     card.dataset.status = o.status;
 
-    const statusBtns = STATUSES.map((s) =>
-      `<button class="status-btn ${s === o.status ? "is-active" : ""}" data-s="${s}">${s}</button>`
+    const statusBtns = STATUSES.map(
+      (s) =>
+        `<button class="status-btn ${s === o.status ? "is-active" : ""}" data-s="${s}">${s}</button>`,
     ).join("");
 
     card.innerHTML = `
@@ -261,9 +300,14 @@ function render() {
       </div>
       <div class="order__time">Ordered ${timeLabel(o.createdAt)}</div>`;
 
-    card.querySelectorAll(".status-btn").forEach((b) =>
-      b.addEventListener("click", () => setStatus(o.id, b.dataset.s)));
-    card.querySelector(".del-btn").addEventListener("click", () => deleteOrder(o.id));
+    card
+      .querySelectorAll(".status-btn")
+      .forEach((b) =>
+        b.addEventListener("click", () => setStatus(o.id, b.dataset.s)),
+      );
+    card
+      .querySelector(".del-btn")
+      .addEventListener("click", () => deleteOrder(o.id));
 
     wrap.appendChild(card);
   });
@@ -271,8 +315,12 @@ function render() {
 
 /* ---------- Tabs ---------- */
 function switchTab(name) {
-  $$(".tab").forEach((t) => t.classList.toggle("is-active", t.dataset.tab === name));
-  $$(".panel").forEach((p) => p.classList.toggle("is-active", p.id === "panel-" + name));
+  $$(".tab").forEach((t) =>
+    t.classList.toggle("is-active", t.dataset.tab === name),
+  );
+  $$(".panel").forEach((p) =>
+    p.classList.toggle("is-active", p.id === "panel-" + name),
+  );
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -286,7 +334,9 @@ function init() {
   render();
 
   $("#addBtn").addEventListener("click", addOrder);
-  $$(".tab").forEach((t) => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+  $$(".tab").forEach((t) =>
+    t.addEventListener("click", () => switchTab(t.dataset.tab)),
+  );
 }
 
 init();
