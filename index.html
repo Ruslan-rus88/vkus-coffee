@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0d0b08" />
+    <title>Vkus Coffee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand__mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="26" height="26" fill="none">
+              <path
+                d="M5 12h17v6a7 7 0 0 1-7 7H12a7 7 0 0 1-7-7v-6Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M22 13h3a3 3 0 0 1 0 6h-3"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M10 3c-1 1.5-1 3 0 4.5M14.5 3c-1 1.5-1 3 0 4.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+          <div class="brand__text">
+            <h1>Vkus<span>Coffee</span></h1>
+            <p>order studio</p>
+          </div>
+        </div>
+        <div class="topbar__stat">
+          <span class="topbar__count" id="activeCount">0</span>
+          <span class="topbar__label">active</span>
+        </div>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab is-active" data-tab="new" role="tab">
+          New Order
+        </button>
+        <button class="tab" data-tab="active" role="tab">
+          Active Orders
+          <span class="tab__badge" id="tabBadge">0</span>
+        </button>
+      </nav>
+
+      <main class="content">
+        <!-- NEW ORDER -->
+        <section class="panel is-active" id="panel-new" role="tabpanel">
+          <div class="block">
+            <div class="block__head">
+              <h2>Client</h2>
+              <p>Who is this for?</p>
+            </div>
+            <div class="clients" id="clients"></div>
+          </div>
+
+          <div class="block">
+            <div class="block__head">
+              <h2>Choose a drink</h2>
+              <p>Tap to select from the menu</p>
+            </div>
+            <div class="menu" id="menu"></div>
+          </div>
+
+          <div class="block">
+            <div class="block__head">
+              <h2>Strength</h2>
+            </div>
+            <div class="dots" id="strength" data-value="2"></div>
+          </div>
+
+          <div class="block">
+            <div class="block__head">
+              <h2>Size</h2>
+            </div>
+            <div class="dots" id="size" data-value="2"></div>
+          </div>
+
+          <div class="summary" id="summary">
+            <div class="summary__info">
+              <span class="summary__drink" id="sumDrink"
+                >No drink selected</span
+              >
+              <span class="summary__meta" id="sumMeta">—</span>
+            </div>
+            <span class="summary__price" id="sumPrice">€0</span>
+          </div>
+
+          <button class="btn-add" id="addBtn">Add Order</button>
+        </section>
+
+        <!-- ACTIVE ORDERS -->
+        <section class="panel" id="panel-active" role="tabpanel">
+          <div class="orders" id="orders"></div>
+          <div class="empty" id="empty">
+            <div class="empty__cup" aria-hidden="true">☕</div>
+            <p>No active orders yet.</p>
+            <span>Brew something from the New Order tab.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
