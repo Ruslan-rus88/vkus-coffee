@@ -332,15 +332,24 @@ init();
 
 /* ---------- Wake Lock — keep screen on while app is visible ---------- */
 let wakeLock = null;
+
 async function requestWakeLock() {
-  if (!("wakeLock" in navigator)) return;
+  if (!("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+  if (wakeLock !== null) return;
   try {
     wakeLock = await navigator.wakeLock.request("screen");
+    // when the OS releases it (e.g. tab switch), clear so we can re-request
+    wakeLock.addEventListener("release", () => { wakeLock = null; });
   } catch {
-    // permission denied or not supported — silent fail
+    // not supported or denied — silent fail
   }
 }
+
+// Re-acquire when the user returns to the tab/app
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") requestWakeLock();
 });
-requestWakeLock();
+
+// iOS requires a user gesture before the first Wake Lock request will succeed
+document.addEventListener("touchstart", requestWakeLock, { once: true });
+document.addEventListener("click",      requestWakeLock, { once: true });
