@@ -18,6 +18,8 @@
   </head>
   <body>
     <div class="app">
+      <div class="testing-banner" id="testingBanner">⚠ Testing Mode</div>
+
       <header class="topbar">
         <div class="brand">
           <span class="brand__mark" aria-hidden="true">
@@ -47,9 +49,17 @@
             <p>order studio</p>
           </div>
         </div>
-        <div class="topbar__stat">
-          <span class="topbar__count" id="activeCount">0</span>
-          <span class="topbar__label">active</span>
+        <div class="topbar__right">
+          <button class="settings-btn" id="settingsBtn" aria-label="Settings">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+          <div class="topbar__stat">
+            <span class="topbar__count" id="activeCount">0</span>
+            <span class="topbar__label">active</span>
+          </div>
         </div>
       </header>
 
@@ -119,6 +129,52 @@
           </div>
         </section>
       </main>
+    </div>
+
+    <div class="settings-overlay" id="settingsOverlay">
+      <div class="settings-drawer">
+        <div class="settings-drawer__handle"></div>
+        <div class="settings-drawer__head">
+          <h3>Settings</h3>
+          <button class="settings-drawer__close" id="settingsClose">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="settings-list">
+          <div class="settings-row">
+            <div class="settings-row__info">
+              <span class="settings-row__name">Sound</span>
+              <span class="settings-row__desc">Play sounds when interacting</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="settingSound" />
+              <span class="toggle__track"><span class="toggle__thumb"></span></span>
+            </label>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row__info">
+              <span class="settings-row__name">Testing Mode</span>
+              <span class="settings-row__desc">Show a testing banner at the top</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="settingTesting" />
+              <span class="toggle__track"><span class="toggle__thumb"></span></span>
+            </label>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row__info">
+              <span class="settings-row__name">Auto Surprise</span>
+              <span class="settings-row__desc">System picks the surprise drink automatically</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="settingAutoSurprise" />
+              <span class="toggle__track"><span class="toggle__thumb"></span></span>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="toast" id="toast"></div>

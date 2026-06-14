@@ -1,83 +1,112 @@
 /* ===== Vkus Coffee — order studio ===== */
 
 const MENU = [
-  { id: "capuchino", name: "Capuchino", price: 10, emoji: "☕" },
-  { id: "coffee", name: "Coffee", price: 20, emoji: "🫖" },
-  { id: "hotwater", name: "Hot Water", price: 2, emoji: "💧" },
+  { id: "capuchino", name: "Capuchino", price: 10,  emoji: "☕" },
+  { id: "coffee",    name: "Coffee",    price: 20,  emoji: "🫖" },
+  { id: "hotwater",  name: "Hot Water", price: 2,   emoji: "💧" },
   { id: "flatwhite", name: "Flat White", price: 15, emoji: "🥛" },
-  { id: "espresso", name: "Espresso", price: 100, emoji: "⚡" },
-  {
-    id: "surprise",
-    name: "Surprise!",
-    price: null,
-    emoji: "🎁",
-    surprise: true,
-  },
+  { id: "espresso",  name: "Espresso",  price: 100, emoji: "⚡" },
+  { id: "surprise",  name: "Surprise!", price: null, emoji: "🎁", surprise: true },
 ];
 
 const CLIENTS = [
-  "Ruslan",
-  "Katrine",
-  "Dudi Turki",
-  "Manya Anna",
-  "Raman",
-  "Karim",
-  "Shaalan",
-  "Daniil",
+  "Ruslan", "Katrine", "Dudi Turki", "Manya Anna",
+  "Raman", "Karim", "Shaalan", "Daniil",
 ];
 
-const DOT_LABELS = ["Small", "Medium", "Large"];
-const STRENGTH_LABELS = ["Mild", "Regular", "Strong"];
-const STATUSES = ["Created", "Ready", "Done"];
-const STORE_KEY = "vkus.coffee.orders";
+const DOT_LABELS      = ["Small",  "Medium",  "Large"];
+const STRENGTH_LABELS = ["Mild",   "Regular", "Strong"];
+const STATUSES        = ["Created", "Ready",   "Done"];
+const STORE_KEY       = "vkus.coffee.orders";
+const SETTINGS_KEY    = "vkus.coffee.settings";
+const DEFAULT_SETTINGS = { sound: false, testing: false, autoSurprise: false };
 
 /* ---------- State ---------- */
-let orders = load();
-const draft = { menuId: null, size: 2, strength: 2, client: null };
+let orders   = load();
+let settings = loadSettings();
+const draft  = { menuId: null, size: 2, strength: 2, client: null };
 
 /* ---------- Helpers ---------- */
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 function load() {
-  try {
-    return JSON.parse(localStorage.getItem(STORE_KEY)) || [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch { return []; }
 }
 function save() {
   localStorage.setItem(STORE_KEY, JSON.stringify(orders));
 }
+function loadSettings() {
+  try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) }; }
+  catch { return { ...DEFAULT_SETTINGS }; }
+}
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
 function initials(name) {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 }
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 function timeLabel(ts) {
-  const d = new Date(ts);
-  return d.toLocaleString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    day: "2-digit",
-    month: "short",
+  return new Date(ts).toLocaleString([], {
+    hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short",
   });
 }
 
-/* Resolve a drink (handles surprise) */
+/* Resolve a drink — handles both manual and auto surprise */
 function resolveDrink(menuId, surpriseId) {
   const item = MENU.find((m) => m.id === menuId);
   if (!item) return null;
   if (item.surprise) {
+    if (surpriseId) {
+      const pick = MENU.find((m) => m.id === surpriseId);
+      if (pick) return { name: `Surprise: ${pick.name}`, price: pick.price, emoji: "🎁" };
+    }
     return { name: "Surprise!", price: null, emoji: "🎁" };
   }
   return { name: item.name, price: item.price, emoji: item.emoji };
+}
+
+/* ---------- Sound ---------- */
+let audioCtx = null;
+function playSound(type) {
+  if (!settings.sound) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx  = audioCtx;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const t = ctx.currentTime;
+    if (type === "tap") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(680, t);
+      osc.frequency.exponentialRampToValueAtTime(340, t + 0.08);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+      osc.start(t); osc.stop(t + 0.11);
+    } else if (type === "add") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(523, t);
+      osc.frequency.setValueAtTime(659, t + 0.11);
+      osc.frequency.setValueAtTime(784, t + 0.22);
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.setValueAtTime(0.22, t + 0.22);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.44);
+      osc.start(t); osc.stop(t + 0.44);
+    } else if (type === "delete") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(340, t);
+      osc.frequency.exponentialRampToValueAtTime(160, t + 0.18);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc.start(t); osc.stop(t + 0.22);
+    }
+  } catch {}
 }
 
 /* ---------- Toast ---------- */
@@ -105,10 +134,9 @@ function buildMenu() {
       <span class="menu-item__price">${price}</span>`;
     btn.addEventListener("click", () => {
       draft.menuId = item.id;
-      $$("#menu .menu-item").forEach((b) =>
-        b.classList.toggle("is-active", b === btn),
-      );
+      $$("#menu .menu-item").forEach((b) => b.classList.toggle("is-active", b === btn));
       updateSummary();
+      playSound("tap");
     });
     wrap.appendChild(btn);
   });
@@ -126,10 +154,9 @@ function buildDots(containerId, labels, key) {
                      <span class="dot-opt__label">${labels[i - 1]}</span>`;
     opt.addEventListener("click", () => {
       draft[key] = i;
-      $$("#" + containerId + " .dot-opt").forEach((o) =>
-        o.classList.toggle("is-active", o === opt),
-      );
+      $$("#" + containerId + " .dot-opt").forEach((o) => o.classList.toggle("is-active", o === opt));
       updateSummary();
+      playSound("tap");
     });
     wrap.appendChild(opt);
   }
@@ -144,32 +171,30 @@ function buildClients() {
     btn.innerHTML = `<span class="client__av">${initials(name)}</span>${name}`;
     btn.addEventListener("click", () => {
       draft.client = name;
-      $$("#clients .client").forEach((b) =>
-        b.classList.toggle("is-active", b === btn),
-      );
+      $$("#clients .client").forEach((b) => b.classList.toggle("is-active", b === btn));
       updateSummary();
+      playSound("tap");
     });
     wrap.appendChild(btn);
   });
 }
 
 function updateSummary() {
-  const item = MENU.find((m) => m.id === draft.menuId);
+  const item   = MENU.find((m) => m.id === draft.menuId);
   const addBtn = $("#addBtn");
   if (!item) {
     $("#sumDrink").textContent = "No drink selected";
-    $("#sumMeta").textContent = "—";
+    $("#sumMeta").textContent  = "—";
     $("#sumPrice").textContent = "€0";
     addBtn.disabled = true;
     return;
   }
   $("#sumDrink").textContent = item.name;
-  const meta = [
+  $("#sumMeta").textContent  = [
     DOT_LABELS[draft.size - 1],
     STRENGTH_LABELS[draft.strength - 1],
     draft.client || "no client",
   ].join(" · ");
-  $("#sumMeta").textContent = meta;
   $("#sumPrice").textContent = item.surprise ? "€ ?" : `€${item.price}`;
   addBtn.disabled = !draft.client;
 }
@@ -181,9 +206,15 @@ function addOrder() {
     return;
   }
   const item = MENU.find((m) => m.id === draft.menuId);
+  let surpriseId = null;
+  if (item.surprise && settings.autoSurprise) {
+    const pool = MENU.filter((m) => !m.surprise);
+    surpriseId = pool[Math.floor(Math.random() * pool.length)].id;
+  }
   orders.unshift({
     id: uid(),
     menuId: draft.menuId,
+    surpriseId,
     size: draft.size,
     strength: draft.strength,
     client: draft.client,
@@ -193,23 +224,20 @@ function addOrder() {
   save();
   resetDraft();
   render();
+  playSound("add");
   toast("Order added ☕");
-  switchTab("active");
+  switchTab("active", true);
 }
 
 function resetDraft() {
   draft.menuId = null;
-  draft.size = 2;
+  draft.size   = 2;
   draft.strength = 2;
   draft.client = null;
   $$("#menu .menu-item").forEach((b) => b.classList.remove("is-active"));
   $$("#clients .client").forEach((b) => b.classList.remove("is-active"));
-  $$("#size .dot-opt").forEach((o) =>
-    o.classList.toggle("is-active", o.dataset.level === "2"),
-  );
-  $$("#strength .dot-opt").forEach((o) =>
-    o.classList.toggle("is-active", o.dataset.level === "2"),
-  );
+  $$("#size .dot-opt").forEach((o) => o.classList.toggle("is-active", o.dataset.level === "2"));
+  $$("#strength .dot-opt").forEach((o) => o.classList.toggle("is-active", o.dataset.level === "2"));
   updateSummary();
 }
 
@@ -220,38 +248,36 @@ function setStatus(id, status) {
   o.status = status;
   save();
   render();
+  playSound("tap");
 }
 function deleteOrder(id) {
   orders = orders.filter((x) => x.id !== id);
   save();
   render();
+  playSound("delete");
   toast("Order deleted");
 }
 
 /* ---------- Render active orders ---------- */
 function dotsHtml(level) {
-  return Array.from(
-    { length: 3 },
-    (_, i) => `<i class="${i < level ? "on" : ""}"></i>`,
-  ).join("");
+  return Array.from({ length: 3 }, (_, i) => `<i class="${i < level ? "on" : ""}"></i>`).join("");
 }
 
 function render() {
   const wrap = $("#orders");
   wrap.innerHTML = "";
   $("#activeCount").textContent = orders.length;
-  $("#tabBadge").textContent = orders.length;
+  $("#tabBadge").textContent    = orders.length;
   $("#empty").classList.toggle("is-shown", orders.length === 0);
 
   orders.forEach((o) => {
     const drink = resolveDrink(o.menuId, o.surpriseId);
-    const card = document.createElement("div");
-    card.className = "order";
+    const card  = document.createElement("div");
+    card.className   = "order";
     card.dataset.status = o.status;
 
-    const statusBtns = STATUSES.map(
-      (s) =>
-        `<button class="status-btn ${s === o.status ? "is-active" : ""}" data-s="${s}">${s}</button>`,
+    const statusBtns = STATUSES.map((s) =>
+      `<button class="status-btn ${s === o.status ? "is-active" : ""}" data-s="${s}">${s}</button>`
     ).join("");
 
     card.innerHTML = `
@@ -289,43 +315,76 @@ function render() {
       </div>
       <div class="order__time">Ordered ${timeLabel(o.createdAt)}</div>`;
 
-    card
-      .querySelectorAll(".status-btn")
-      .forEach((b) =>
-        b.addEventListener("click", () => setStatus(o.id, b.dataset.s)),
-      );
-    card
-      .querySelector(".del-btn")
-      .addEventListener("click", () => deleteOrder(o.id));
+    card.querySelectorAll(".status-btn").forEach((b) =>
+      b.addEventListener("click", () => setStatus(o.id, b.dataset.s)));
+    card.querySelector(".del-btn").addEventListener("click", () => deleteOrder(o.id));
 
     wrap.appendChild(card);
   });
 }
 
 /* ---------- Tabs ---------- */
-function switchTab(name) {
-  $$(".tab").forEach((t) =>
-    t.classList.toggle("is-active", t.dataset.tab === name),
-  );
-  $$(".panel").forEach((p) =>
-    p.classList.toggle("is-active", p.id === "panel-" + name),
-  );
+function switchTab(name, silent = false) {
+  $$(".tab").forEach((t) => t.classList.toggle("is-active", t.dataset.tab === name));
+  $$(".panel").forEach((p) => p.classList.toggle("is-active", p.id === "panel-" + name));
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!silent) playSound("tap");
+}
+
+/* ---------- Settings ---------- */
+function applySettings() {
+  $("#testingBanner").classList.toggle("is-shown", settings.testing);
+  $("#settingSound").checked        = settings.sound;
+  $("#settingTesting").checked      = settings.testing;
+  $("#settingAutoSurprise").checked = settings.autoSurprise;
+}
+
+function initSettings() {
+  const overlay = $("#settingsOverlay");
+
+  $("#settingsBtn").addEventListener("click", () => {
+    playSound("tap");
+    overlay.classList.add("is-open");
+  });
+  $("#settingsClose").addEventListener("click", () => {
+    overlay.classList.remove("is-open");
+  });
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.classList.remove("is-open");
+  });
+
+  $("#settingSound").addEventListener("change", (e) => {
+    settings.sound = e.target.checked;
+    saveSettings();
+    if (settings.sound) playSound("tap");
+  });
+  $("#settingTesting").addEventListener("change", (e) => {
+    settings.testing = e.target.checked;
+    saveSettings();
+    playSound("tap");
+    applySettings();
+  });
+  $("#settingAutoSurprise").addEventListener("change", (e) => {
+    settings.autoSurprise = e.target.checked;
+    saveSettings();
+    playSound("tap");
+  });
+
+  applySettings();
 }
 
 /* ---------- Init ---------- */
 function init() {
   buildMenu();
-  buildDots("size", DOT_LABELS, "size");
   buildDots("strength", STRENGTH_LABELS, "strength");
+  buildDots("size", DOT_LABELS, "size");
   buildClients();
   updateSummary();
   render();
 
   $("#addBtn").addEventListener("click", addOrder);
-  $$(".tab").forEach((t) =>
-    t.addEventListener("click", () => switchTab(t.dataset.tab)),
-  );
+  $$(".tab").forEach((t) => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+  initSettings();
 }
 
 init();
@@ -338,18 +397,12 @@ async function requestWakeLock() {
   if (wakeLock !== null) return;
   try {
     wakeLock = await navigator.wakeLock.request("screen");
-    // when the OS releases it (e.g. tab switch), clear so we can re-request
     wakeLock.addEventListener("release", () => { wakeLock = null; });
-  } catch {
-    // not supported or denied — silent fail
-  }
+  } catch {}
 }
 
-// Re-acquire when the user returns to the tab/app
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") requestWakeLock();
 });
-
-// iOS requires a user gesture before the first Wake Lock request will succeed
 document.addEventListener("touchstart", requestWakeLock, { once: true });
 document.addEventListener("click",      requestWakeLock, { once: true });
