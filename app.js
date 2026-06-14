@@ -75,12 +75,7 @@ function resolveDrink(menuId, surpriseId) {
   const item = MENU.find((m) => m.id === menuId);
   if (!item) return null;
   if (item.surprise) {
-    const pick = MENU.find((m) => m.id === surpriseId) || MENU[0];
-    return {
-      name: `Surprise: ${pick.name}`,
-      price: pick.price ?? 0,
-      emoji: "🎁",
-    };
+    return { name: "Surprise!", price: null, emoji: "🎁" };
   }
   return { name: item.name, price: item.price, emoji: item.emoji };
 }
@@ -186,15 +181,9 @@ function addOrder() {
     return;
   }
   const item = MENU.find((m) => m.id === draft.menuId);
-  let surpriseId = null;
-  if (item.surprise) {
-    const pool = MENU.filter((m) => !m.surprise);
-    surpriseId = pool[Math.floor(Math.random() * pool.length)].id;
-  }
   orders.unshift({
     id: uid(),
     menuId: draft.menuId,
-    surpriseId,
     size: draft.size,
     strength: draft.strength,
     client: draft.client,
@@ -277,7 +266,7 @@ function render() {
             </div>
           </div>
         </div>
-        <div class="order__price">€${drink.price}</div>
+        <div class="order__price">${drink.price != null ? `€${drink.price}` : "€ ?"}</div>
       </div>
       <div class="order__attrs">
         <div class="attr">
@@ -340,3 +329,18 @@ function init() {
 }
 
 init();
+
+/* ---------- Wake Lock — keep screen on while app is visible ---------- */
+let wakeLock = null;
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+  } catch {
+    // permission denied or not supported — silent fail
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") requestWakeLock();
+});
+requestWakeLock();
